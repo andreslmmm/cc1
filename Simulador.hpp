@@ -5,7 +5,7 @@
 #include <thread>
 #include <chrono>
 
-// Clase para simulación acelerada
+// Clase para simulaci�n acelerada
 class Simulador {
 private:
     Invernadero* invernadero;

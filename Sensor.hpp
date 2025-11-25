@@ -4,6 +4,8 @@
 #include <string>
 #include <cstdlib>
 #include <ctime>
+#include <cmath>
+#include <random>
 
 // Clase base abstracta para sensores
 class Sensor {
@@ -16,13 +18,15 @@ protected:
     double rangoMax;
     double umbralAlerta;
     double umbralCritico;
+    double tasaEvaporacion;  // para simular evaporación más realista
+    double tasaConsumo;      // para consumo de agua/nutrientes
 
 public:
     Sensor(std::string _id, std::string _tipo, std::string _unidad, 
            double _min, double _max, double _alerta, double _critico)
         : id(_id), tipo(_tipo), unidad(_unidad), valorActual(0),
           rangoMin(_min), rangoMax(_max), umbralAlerta(_alerta), 
-          umbralCritico(_critico) {}
+          umbralCritico(_critico), tasaEvaporacion(0.0), tasaConsumo(0.0) {}
 
     virtual ~Sensor() {}
 
@@ -45,29 +49,53 @@ public:
     }
 };
 
-// Sensor de temperatura
+// Sensor de temperatura mejorado
 class SensorTemperatura : public Sensor {
 private:
-    double deriva; // Para simular cambio gradual
+    double deriva;
+    double cicloAmbiente;  // para simular día/noche
 
 public:
     SensorTemperatura(std::string _id, double tempInicial = 25.0)
-        : Sensor(_id, "Temperatura", "°C", 0.0, 50.0, 35.0, 40.0), deriva(0) {
+        : Sensor(_id, "Temperatura", "°C", 0.0, 50.0, 35.0, 40.0), 
+          deriva(0), cicloAmbiente(0) {
         valorActual = tempInicial;
         srand(time(nullptr));
     }
 
     double leer() override {
-        // Simulación: pequeñas variaciones aleatorias + deriva
-        double variacion = ((rand() % 100) - 50) / 100.0; // -0.5 a +0.5
-        deriva += ((rand() % 100) - 50) / 1000.0; // Deriva lenta
-        valorActual += variacion + deriva;
+        time_t ahora = time(nullptr);
+        struct tm* tiempo = localtime(&ahora);
+        int hora = tiempo->tm_hour;
+        
+        // Ciclo día/noche: más calor durante el día
+        double cicloTemp = 5.0 * sin((hora - 6) * 3.14159 / 12.0);
+        if (hora < 6 || hora > 18) cicloTemp = -3.0;
+        
+        double variacion = ((rand() % 100) - 50) / 100.0;
+        deriva += ((rand() % 100) - 50) / 1000.0;
+        
+        valorActual += (cicloTemp * 0.01) + variacion + (deriva * 0.5);
 
-        // Mantener en rango
         if (valorActual < rangoMin) valorActual = rangoMin;
         if (valorActual > rangoMax) valorActual = rangoMax;
 
         return valorActual;
+    }
+
+    std::string getID() const { return id; }
+    std::string getTipo() const { return tipo; }
+    std::string getUnidad() const { return unidad; }
+    double getValorActual() const { return valorActual; }
+    double getRangoMin() const { return rangoMin; }
+    double getRangoMax() const { return rangoMax; }
+
+    std::string evaluarEstado() {
+        if (valorActual >= umbralCritico || valorActual <= (rangoMin + (rangoMax - rangoMin) * 0.05))
+            return "critico";
+        else if (valorActual >= umbralAlerta)
+            return "alerta";
+        return "normal";
     }
 
     void aplicarControlCalor(double ajuste) {
@@ -77,27 +105,43 @@ public:
     }
 };
 
-// Sensor de humedad
+// Sensor de humedad mejorado
 class SensorHumedad : public Sensor {
 private:
-    double tasaEvaporacion;
+    double tasaEvaporacionBase;
+    bool esSuelo;
 
 public:
-    SensorHumedad(std::string _id, double humInicial = 70.0, bool esSuelo = false)
-        : Sensor(_id, esSuelo ? "Humedad Suelo" : "Humedad Relativa", "%", 
-                 0.0, 100.0, 85.0, 95.0), tasaEvaporacion(0.1) {
+    SensorHumedad(std::string _id, double humInicial = 70.0, bool _esSuelo = false)
+        : Sensor(_id, _esSuelo ? "Humedad Suelo" : "Humedad Relativa", "%", 
+                 0.0, 100.0, 85.0, 95.0), tasaEvaporacionBase(0.15), esSuelo(_esSuelo) {
         valorActual = humInicial;
     }
 
     double leer() override {
-        // Simulación: disminución gradual (evaporación)
+        double factor = esSuelo ? 0.08 : 0.12;
         double variacion = ((rand() % 100) - 50) / 200.0;
-        valorActual -= tasaEvaporacion + variacion;
+        valorActual -= (tasaEvaporacionBase * factor) + variacion;
 
         if (valorActual < rangoMin) valorActual = rangoMin;
         if (valorActual > rangoMax) valorActual = rangoMax;
 
         return valorActual;
+    }
+
+    std::string getID() const { return id; }
+    std::string getTipo() const { return tipo; }
+    std::string getUnidad() const { return unidad; }
+    double getValorActual() const { return valorActual; }
+    double getRangoMin() const { return rangoMin; }
+    double getRangoMax() const { return rangoMax; }
+
+    std::string evaluarEstado() {
+        if (valorActual >= umbralCritico || valorActual <= (rangoMin + (rangoMax - rangoMin) * 0.05))
+            return "critico";
+        else if (valorActual >= umbralAlerta)
+            return "alerta";
+        return "normal";
     }
 
     void aplicarRiego(double cantidad) {
@@ -106,7 +150,7 @@ public:
     }
 };
 
-// Sensor de luz
+// Sensor de luz mejorado
 class SensorLuz : public Sensor {
 public:
     SensorLuz(std::string _id, double luzInicial = 45000.0)
@@ -115,21 +159,35 @@ public:
     }
 
     double leer() override {
-        // Simulación basada en hora del día (simplificado)
         time_t ahora = time(nullptr);
         struct tm* tiempo = localtime(&ahora);
         int hora = tiempo->tm_hour;
 
-        // Simular ciclo día/noche
         if (hora >= 6 && hora <= 18) {
-            // Día: mayor intensidad
-            valorActual = 30000 + (rand() % 40000);
+            int cicloHora = hora - 6;
+            // Máximo al mediodía (hora 12)
+            double factorLuz = sin((cicloHora * 3.14159) / 12.0);
+            valorActual = 20000 + (factorLuz * 50000) + (rand() % 5000);
         } else {
-            // Noche: baja intensidad
-            valorActual = rand() % 5000;
+            valorActual = rand() % 2000;  // Luz nocturna mínima
         }
 
         return valorActual;
+    }
+
+    std::string getID() const { return id; }
+    std::string getTipo() const { return tipo; }
+    std::string getUnidad() const { return unidad; }
+    double getValorActual() const { return valorActual; }
+    double getRangoMin() const { return rangoMin; }
+    double getRangoMax() const { return rangoMax; }
+
+    std::string evaluarEstado() {
+        if (valorActual >= umbralCritico || valorActual <= (rangoMin + (rangoMax - rangoMin) * 0.05))
+            return "critico";
+        else if (valorActual >= umbralAlerta)
+            return "alerta";
+        return "normal";
     }
 };
 
@@ -151,6 +209,21 @@ public:
 
         return valorActual;
     }
+
+    std::string getID() const { return id; }
+    std::string getTipo() const { return tipo; }
+    std::string getUnidad() const { return unidad; }
+    double getValorActual() const { return valorActual; }
+    double getRangoMin() const { return rangoMin; }
+    double getRangoMax() const { return rangoMax; }
+
+    std::string evaluarEstado() {
+        if (valorActual >= umbralCritico || valorActual <= (rangoMin + (rangoMax - rangoMin) * 0.05))
+            return "critico";
+        else if (valorActual >= umbralAlerta)
+            return "alerta";
+        return "normal";
+    }
 };
 
 // Sensor de CO2
@@ -169,6 +242,21 @@ public:
         if (valorActual > rangoMax) valorActual = rangoMax;
 
         return valorActual;
+    }
+
+    std::string getID() const { return id; }
+    std::string getTipo() const { return tipo; }
+    std::string getUnidad() const { return unidad; }
+    double getValorActual() const { return valorActual; }
+    double getRangoMin() const { return rangoMin; }
+    double getRangoMax() const { return rangoMax; }
+
+    std::string evaluarEstado() {
+        if (valorActual >= umbralCritico || valorActual <= (rangoMin + (rangoMax - rangoMin) * 0.05))
+            return "critico";
+        else if (valorActual >= umbralAlerta)
+            return "alerta";
+        return "normal";
     }
 };
 
@@ -194,6 +282,21 @@ public:
     void rellenar(double cantidad) {
         valorActual += cantidad;
         if (valorActual > rangoMax) valorActual = rangoMax;
+    }
+
+    std::string getID() const { return id; }
+    std::string getTipo() const { return tipo; }
+    std::string getUnidad() const { return unidad; }
+    double getValorActual() const { return valorActual; }
+    double getRangoMin() const { return rangoMin; }
+    double getRangoMax() const { return rangoMax; }
+
+    std::string evaluarEstado() {
+        if (valorActual >= umbralCritico || valorActual <= (rangoMin + (rangoMax - rangoMin) * 0.05))
+            return "critico";
+        else if (valorActual >= umbralAlerta)
+            return "alerta";
+        return "normal";
     }
 };
 

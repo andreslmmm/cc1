@@ -70,7 +70,7 @@ public:
         return dato;
     }
 
-    // Obtener elemento en posición i - O(n)
+    // Obtener elemento en posici�n i - O(n)
     T obtener(int indice) const {
         if (indice < 0 || indice >= tamano) {
             throw std::out_of_range("Indice fuera de rango");

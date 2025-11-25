@@ -10,13 +10,13 @@ class HeapPrioridad {
 private:
     std::vector<T> heap;
 
-    // Obtener índice del padre - O(1)
+    // Obtener �ndice del padre - O(1)
     int padre(int i) { return (i - 1) / 2; }
 
-    // Obtener índice del hijo izquierdo - O(1)
+    // Obtener �ndice del hijo izquierdo - O(1)
     int hijoIzq(int i) { return 2 * i + 1; }
 
-    // Obtener índice del hijo derecho - O(1)
+    // Obtener �ndice del hijo derecho - O(1)
     int hijoDer(int i) { return 2 * i + 2; }
 
     // HeapifyUp: restaurar propiedad de heap hacia arriba - O(log n)
@@ -33,10 +33,10 @@ private:
         int izq = hijoIzq(i);
         int der = hijoDer(i);
 
-        if (izq < heap.size() && heap[izq] < heap[menor]) {
+        if (izq < (int)heap.size() && heap[izq] < heap[menor]) {
             menor = izq;
         }
-        if (der < heap.size() && heap[der] < heap[menor]) {
+        if (der < (int)heap.size() && heap[der] < heap[menor]) {
             menor = der;
         }
 
@@ -55,7 +55,7 @@ public:
         heapifyUp(heap.size() - 1);
     }
 
-    // Extraer mínimo (mayor prioridad) - O(log n)
+    // Extraer m�nimo (mayor prioridad) - O(log n)
     T extraerMin() {
         if (estaVacio()) {
             throw std::runtime_error("Heap vacio");
@@ -72,7 +72,7 @@ public:
         return minimo;
     }
 
-    // Ver mínimo sin extraer - O(1)
+    // Ver m�nimo sin extraer - O(1)
     T verMin() const {
         if (estaVacio()) {
             throw std::runtime_error("Heap vacio");

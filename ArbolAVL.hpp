@@ -13,7 +13,7 @@ private:
     int tamano;
 
     // Obtener altura del nodo - O(1)
-int altura(NodoAVL<T>* nodo) const {
+    int altura(NodoAVL<T>* nodo) const {
         return nodo ? nodo->altura : 0;
     }
 
@@ -29,7 +29,7 @@ int altura(NodoAVL<T>* nodo) const {
         }
     }
 
-    // Rotación simple a la derecha - O(1)
+    // Rotaci�n simple a la derecha - O(1)
     NodoAVL<T>* rotarDerecha(NodoAVL<T>* y) {
         NodoAVL<T>* x = y->izquierdo;
         NodoAVL<T>* T2 = x->derecho;
@@ -43,7 +43,7 @@ int altura(NodoAVL<T>* nodo) const {
         return x;
     }
 
-    // Rotación simple a la izquierda - O(1)
+    // Rotaci�n simple a la izquierda - O(1)
     NodoAVL<T>* rotarIzquierda(NodoAVL<T>* x) {
         NodoAVL<T>* y = x->derecho;
         NodoAVL<T>* T2 = y->izquierdo;
@@ -57,7 +57,7 @@ int altura(NodoAVL<T>* nodo) const {
         return y;
     }
 
-    // Balancear nodo después de inserción/eliminación - O(1)
+    // Balancear nodo despu�s de inserci�n/eliminaci�n - O(1)
     NodoAVL<T>* balancear(NodoAVL<T>* nodo) {
         actualizarAltura(nodo);
         int balance = factorBalance(nodo);

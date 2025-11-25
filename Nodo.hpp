@@ -1,7 +1,7 @@
 #ifndef NODO_HPP
 #define NODO_HPP
 
-// Nodo genérico para lista enlazada simple
+// Nodo gen�rico para lista enlazada simple
 template <typename T>
 class Nodo {
 public:
@@ -22,7 +22,7 @@ public:
     NodoDoble(T valor) : dato(valor), siguiente(nullptr), anterior(nullptr) {}
 };
 
-// Nodo para árbol AVL
+// Nodo para �rbol AVL
 template <typename T>
 class NodoAVL {
 public:

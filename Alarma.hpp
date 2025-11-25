@@ -7,7 +7,7 @@
 // Clase para representar alarmas del sistema
 class Alarma {
 public:
-    int prioridad; // 1=Crítica, 2=Alta, 3=Media, 4=Baja
+    int prioridad; // 1=Cr�tica, 2=Alta, 3=Media, 4=Baja
     time_t timestamp;
     std::string tipo;
     std::string mensaje;
@@ -24,7 +24,7 @@ public:
         timestamp = time(nullptr);
     }
 
-    // Operadores para comparación en heap (menor prioridad = mayor urgencia)
+    // Operadores para comparaci�n en heap (menor prioridad = mayor urgencia)
     bool operator<(const Alarma& otra) const {
         if (prioridad != otra.prioridad)
             return prioridad > otra.prioridad; // Invertido para min-heap

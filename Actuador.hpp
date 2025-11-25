@@ -3,6 +3,7 @@
 
 #include <string>
 #include <iostream>
+#include <algorithm>
 
 // Clase base abstracta para actuadores
 class Actuador {
@@ -11,7 +12,7 @@ protected:
     std::string tipo;
     bool activo;
     double intensidad; // 0-100%
-    double efectoTemp; // Efecto en temperatura (°C por ciclo)
+    double efectoTemp; // Efecto en temperatura (�C por ciclo)
     double efectoHumedad; // Efecto en humedad (% por ciclo)
     double efectoHumedadRelativa; // Efecto en humedad relativa (% por ciclo)
 
@@ -31,7 +32,7 @@ public:
 
     std::string getEstado() const {
         if (!activo) return "OFF";
-        return std::to_string(intensidad) + "%";
+        return std::to_string((int)intensidad) + "%";
     }
 
     bool estaActivo() const { return activo; }
@@ -42,10 +43,10 @@ public:
     std::string getID() const { return id; }
 };
 
-// Actuadores específicos
+// Actuadores espec�ficos
 class Ventilador : public Actuador {
 public:
-    Ventilador(std::string _id) : Actuador(_id, "Ventilador", -0.5, 0.0, 0.0) {} // Enfría
+    Ventilador(std::string _id) : Actuador(_id, "Ventilador", -0.5, 0.0, 0.0) {} // Enfr�a
 };
 
 class Calefactor : public Actuador {
